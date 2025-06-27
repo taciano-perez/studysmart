@@ -27,7 +27,30 @@ app = Flask(__name__)
 def index():
     now = datetime.date.today()
     cal = calendar.HTMLCalendar(calendar.MONDAY).formatmonth(now.year, now.month)
-    return render_template('index.html', calendar_html=cal, today=now.isoformat())
+
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute(
+        "SELECT study_date, num_minutes, descr FROM STUDY_HOURS "
+        "WHERE strftime('%Y-%m', study_date) = ?",
+        (now.strftime('%Y-%m'),),
+    )
+    rows = [
+        {
+            "study_date": r[0],
+            "num_minutes": r[1],
+            "descr": r[2],
+        }
+        for r in c.fetchall()
+    ]
+    conn.close()
+
+    return render_template(
+        'index.html',
+        calendar_html=cal,
+        today=now.isoformat(),
+        study_rows=rows,
+    )
 
 
 @app.route('/study_hours', methods=['POST'])
