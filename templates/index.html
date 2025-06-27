@@ -72,4 +72,52 @@
         shModal.show();
     });
 </script>
+<style>
+    .study-dots {
+        margin-top: 4px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .study-dot {
+        width: 6px;
+        height: 6px;
+        background-color: blue;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 1px;
+    }
+</style>
+<script>
+    (function() {
+        const studyData = {{ study_rows | tojson | safe }};
+        const dayMap = {};
+        studyData.forEach(function(row) {
+            const day = parseInt(row.study_date.split('-')[2], 10);
+            if (!dayMap[day]) {
+                dayMap[day] = [];
+            }
+            dayMap[day].push(row);
+        });
+
+        document.querySelectorAll('#calendar td').forEach(function(td) {
+            const day = parseInt(td.textContent);
+            if (!isNaN(day) && dayMap[day]) {
+                const container = document.createElement('div');
+                container.className = 'study-dots';
+                td.appendChild(container);
+                dayMap[day].slice(0, 5).forEach(function(r) {
+                    const dot = document.createElement('span');
+                    dot.className = 'study-dot';
+                    dot.setAttribute('data-bs-toggle', 'tooltip');
+                    dot.setAttribute('data-bs-html', 'true');
+                    dot.setAttribute('title', 'minutes: ' + r.num_minutes + '<br>studied: ' + r.descr);
+                    container.appendChild(dot);
+                });
+            }
+        });
+
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function(el) { new bootstrap.Tooltip(el); });
+    })();
+</script>
 {% endblock %}
