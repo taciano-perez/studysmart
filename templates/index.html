@@ -17,8 +17,40 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body d-flex justify-content-around">
-        <button class="btn btn-success">study hours</button>
+        <button id="studyHoursButton" class="btn btn-success">study hours</button>
         <button class="btn btn-info">sleep time</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Study Hours Modal -->
+<div class="modal fade" id="studyHoursModal" tabindex="-1" aria-labelledby="studyHoursLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="studyHoursLabel">study hours</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="studyDate" class="form-label">Date</label>
+            <input type="date" class="form-control" id="studyDate" value="{{ today }}">
+          </div>
+          <div class="mb-3">
+            <label for="studyLength" class="form-label">How long (minutes)</label>
+            <input type="range" class="form-range" id="studyLength" min="5" max="60">
+          </div>
+          <div class="mb-3">
+            <label for="studyDesc" class="form-label">What I studied</label>
+            <textarea class="form-control" id="studyDesc" rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary">Confirm</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
       </div>
     </div>
   </div>
@@ -30,6 +62,13 @@
     document.getElementById('addButton').addEventListener('click', function() {
         var myModal = new bootstrap.Modal(document.getElementById('addModal'));
         myModal.show();
+    });
+
+    document.getElementById('studyHoursButton').addEventListener('click', function() {
+        var addModal = bootstrap.Modal.getInstance(document.getElementById('addModal'));
+        if (addModal) { addModal.hide(); }
+        var shModal = new bootstrap.Modal(document.getElementById('studyHoursModal'));
+        shModal.show();
     });
 </script>
 {% endblock %}
