@@ -33,26 +33,26 @@
         <h5 class="modal-title" id="studyHoursLabel">study hours</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+      <form id="studyHoursForm" method="post" action="{{ url_for('study_hours') }}">
       <div class="modal-body">
-        <form>
           <div class="mb-3">
             <label for="studyDate" class="form-label">Date</label>
-            <input type="date" class="form-control" id="studyDate" value="{{ today }}">
+            <input name="studyDate" type="date" class="form-control" id="studyDate" value="{{ today }}">
           </div>
           <div class="mb-3">
             <label for="studyLength" class="form-label">How long (minutes)</label>
-            <input type="range" class="form-range" id="studyLength" min="5" max="60">
+            <input name="studyLength" type="range" class="form-range" id="studyLength" min="5" max="60">
           </div>
           <div class="mb-3">
             <label for="studyDesc" class="form-label">What I studied</label>
-            <textarea class="form-control" id="studyDesc" rows="3"></textarea>
+            <textarea name="studyDesc" class="form-control" id="studyDesc" rows="3"></textarea>
           </div>
-        </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary">Confirm</button>
+        <button type="submit" class="btn btn-primary">Confirm</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
       </div>
+      </form>
     </div>
   </div>
 </div>

@@ -18,3 +18,6 @@ python app.py
 ```
 
 Then open `http://127.0.0.1:5000/` in your browser.
+
+The application uses SQLite to store study hours. The database file
+`studysmart.db` is created automatically on first run.
