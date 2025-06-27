@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-3">StudySmart</h1>
+<div class="d-flex justify-content-end mb-2">
+    <button id="addButton" class="btn btn-primary">+</button>
+</div>
+<div id="calendar" class="border p-2">
+    {{ calendar_html|safe }}
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addModalLabel">Add Entry</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body d-flex justify-content-around">
+        <button class="btn btn-success">study hours</button>
+        <button class="btn btn-info">sleep time</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('addButton').addEventListener('click', function() {
+        var myModal = new bootstrap.Modal(document.getElementById('addModal'));
+        myModal.show();
+    });
+</script>
+{% endblock %}
