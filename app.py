@@ -3,20 +3,41 @@ import calendar
 import datetime
 import sqlite3
 import os
-
+try:
+    import psycopg2
+except ImportError:
+    psycopg2 = None
+    
 DB_NAME = 'studysmart.db'
 
+def get_conn():
+    url = os.environ.get('DATABASE_URL')
+    if url and psycopg2:
+        return psycopg2.connect(url, sslmode='require')
+    return sqlite3.connect(DB_NAME)
+
+
 def init_db():
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_conn()
     c = conn.cursor()
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS STUDY_HOURS (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            study_date TEXT,
-            num_minutes INTEGER,
-            descr VARCHAR(500)
-        )"""
-    )
+    if os.environ.get('DATABASE_URL'):
+        c.execute(
+            """CREATE TABLE IF NOT EXISTS STUDY_HOURS (
+                id SERIAL PRIMARY KEY,
+                study_date DATE,
+                num_minutes INTEGER,
+                descr VARCHAR(500)
+            )"""
+        )
+    else:
+        c.execute(
+            """CREATE TABLE IF NOT EXISTS STUDY_HOURS (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                study_date TEXT,
+                num_minutes INTEGER,
+                descr VARCHAR(500)
+            )"""
+        )
     conn.commit()
     conn.close()
 
@@ -29,13 +50,20 @@ def index():
     now = datetime.date.today()
     cal = calendar.HTMLCalendar(calendar.MONDAY).formatmonth(now.year, now.month)
 
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_conn()
     c = conn.cursor()
-    c.execute(
-        "SELECT study_date, num_minutes, descr FROM STUDY_HOURS "
-        "WHERE strftime('%Y-%m', study_date) = ?",
-        (now.strftime('%Y-%m'),),
-    )
+    if os.environ.get('DATABASE_URL'):
+        c.execute(
+            "SELECT study_date, num_minutes, descr FROM STUDY_HOURS "
+            "WHERE to_char(study_date, 'YYYY-MM') = %s",
+            (now.strftime('%Y-%m'),),
+        )
+    else:
+        c.execute(
+            "SELECT study_date, num_minutes, descr FROM STUDY_HOURS "
+            "WHERE strftime('%Y-%m', study_date) = ?",
+            (now.strftime('%Y-%m'),),
+        )
     rows = [
         {
             "study_date": r[0],
@@ -59,12 +87,18 @@ def study_hours():
     study_date = request.form.get('studyDate')
     num_minutes = request.form.get('studyLength')
     descr = request.form.get('studyDesc', '')
-    conn = sqlite3.connect(DB_NAME)
+    conn = get_conn()
     c = conn.cursor()
-    c.execute(
-        'INSERT INTO STUDY_HOURS (study_date, num_minutes, descr) VALUES (?, ?, ?)',
-        (study_date, int(num_minutes), descr[:500]),
-    )
+    if os.environ.get('DATABASE_URL'):
+        c.execute(
+            'INSERT INTO STUDY_HOURS (study_date, num_minutes, descr) VALUES (%s, %s, %s)',
+            (study_date, int(num_minutes), descr[:500]),
+        )
+    else:
+        c.execute(
+            'INSERT INTO STUDY_HOURS (study_date, num_minutes, descr) VALUES (?, ?, ?)',
+            (study_date, int(num_minutes), descr[:500]),
+        )
     conn.commit()
     conn.close()
     return redirect(url_for('index'))
