@@ -7,20 +7,25 @@ try:
     import psycopg2
 except ImportError:
     psycopg2 = None
+
+USING_POSTGRES = bool(os.environ.get('DATABASE_URL') and psycopg2)
+if USING_POSTGRES:
+    print("Using PostgreSQL database", flush=True)
+else:
+    print("Using local SQLite database", flush=True)
     
 DB_NAME = 'studysmart.db'
 
 def get_conn():
-    url = os.environ.get('DATABASE_URL')
-    if url and psycopg2:
-        return psycopg2.connect(url, sslmode='require')
+    if USING_POSTGRES:
+        return psycopg2.connect(os.environ['DATABASE_URL'], sslmode='require')
     return sqlite3.connect(DB_NAME)
 
 
 def init_db():
     conn = get_conn()
     c = conn.cursor()
-    if os.environ.get('DATABASE_URL'):
+    if USING_POSTGRES:
         c.execute(
             """CREATE TABLE IF NOT EXISTS STUDY_HOURS (
                 id SERIAL PRIMARY KEY,
@@ -52,7 +57,7 @@ def index():
 
     conn = get_conn()
     c = conn.cursor()
-    if os.environ.get('DATABASE_URL'):
+    if USING_POSTGRES:
         c.execute(
             "SELECT study_date, num_minutes, descr FROM STUDY_HOURS "
             "WHERE to_char(study_date, 'YYYY-MM') = %s",
@@ -89,7 +94,7 @@ def study_hours():
     descr = request.form.get('studyDesc', '')
     conn = get_conn()
     c = conn.cursor()
-    if os.environ.get('DATABASE_URL'):
+    if USING_POSTGRES:
         c.execute(
             'INSERT INTO STUDY_HOURS (study_date, num_minutes, descr) VALUES (%s, %s, %s)',
             (study_date, int(num_minutes), descr[:500]),
