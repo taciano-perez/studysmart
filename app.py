@@ -3,12 +3,11 @@ import calendar
 import datetime
 import sqlite3
 import os
-
 try:
     import psycopg2
 except ImportError:
     psycopg2 = None
-
+    
 DB_NAME = 'studysmart.db'
 
 def get_conn():

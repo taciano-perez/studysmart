@@ -24,8 +24,11 @@ Then open `http://127.0.0.1:5000/` in your browser. The app now reads the
 `PORT` environment variable if set (for example on Render), defaulting to
 `5000` when run locally.
 
-The application uses SQLite to store study hours when run locally. On Render,
-if the `DATABASE_URL` environment variable is provided (for example by
+The application uses SQLite to store study hours when run locally. In that case, the 
+database file `studysmart.db` is created automatically on first run.
+On Render, if the `DATABASE_URL` environment variable is provided (for example by
 attaching the **studysmart** PostgreSQL database), the app connects to that
 database instead. The SQLite file `studysmart.db` is only created when no
 external database URL is present.
+=======
+The application uses SQLite to store study hours. 
