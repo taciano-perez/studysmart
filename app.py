@@ -5,7 +5,7 @@ import sqlite3
 import os
 import logging
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 try:
     import psycopg2
 except ImportError:
