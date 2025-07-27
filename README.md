@@ -29,5 +29,5 @@ On Render, if the `DATABASE_URL` environment variable is provided (for example b
 attaching the **studysmart** PostgreSQL database), the app connects to that
 database instead. The SQLite file `studysmart.db` is only created when no
 external database URL is present.
-=======
+
 The application uses SQLite to store study hours. 
