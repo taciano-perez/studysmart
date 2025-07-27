@@ -90,6 +90,7 @@
 <script>
     (function() {
         const studyData = {{ study_rows | tojson | safe }};
+        console.log('studyData from server', studyData);
         const dayMap = {};
         studyData.forEach(function(row) {
             const day = parseInt(row.study_date.split('-')[2], 10);
@@ -98,10 +99,12 @@
             }
             dayMap[day].push(row);
         });
+        console.log('dayMap', dayMap);
 
         document.querySelectorAll('#calendar td').forEach(function(td) {
             const day = parseInt(td.textContent);
             if (!isNaN(day) && dayMap[day]) {
+                console.log('Rendering dots for day', day, dayMap[day]);
                 const container = document.createElement('div');
                 container.className = 'study-dots';
                 td.appendChild(container);
