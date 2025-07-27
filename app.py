@@ -3,6 +3,9 @@ import calendar
 import datetime
 import sqlite3
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 try:
     import psycopg2
 except ImportError:
@@ -53,6 +56,7 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     now = datetime.date.today()
+    logging.info("Rendering index for %s", now.isoformat())
     cal = calendar.HTMLCalendar(calendar.MONDAY).formatmonth(now.year, now.month)
 
     conn = get_conn()
@@ -77,6 +81,8 @@ def index():
         }
         for r in c.fetchall()
     ]
+    logging.info("Fetched %d study rows", len(rows))
+    logging.debug("Study rows detail: %s", rows)
     conn.close()
 
     return render_template(
@@ -92,6 +98,7 @@ def study_hours():
     study_date = request.form.get('studyDate')
     num_minutes = request.form.get('studyLength')
     descr = request.form.get('studyDesc', '')
+    logging.info("Received study hours submission date=%s minutes=%s", study_date, num_minutes)
     conn = get_conn()
     c = conn.cursor()
     if USING_POSTGRES:
@@ -105,6 +112,7 @@ def study_hours():
             (study_date, int(num_minutes), descr[:500]),
         )
     conn.commit()
+    logging.info("Study hours inserted for %s", study_date)
     conn.close()
     return redirect(url_for('index'))
 
