@@ -1,7 +1,6 @@
 # StudySmart
 
-A simple Flask web application that displays the current month's calendar.
-A plus button above the calendar opens a dialog with two options: **study hours** and **sleep time**.
+A web application to help high schoolers to manage their study and sleep hours.
 
 ## Setup
 
