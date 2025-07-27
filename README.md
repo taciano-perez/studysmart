@@ -17,6 +17,9 @@ pip install -r requirements.txt
 python app.py
 ```
 
+When deployed (for example on Render), the service is started with
+``gunicorn app:app`` as defined in ``render.yaml``.
+
 Then open `http://127.0.0.1:5000/` in your browser. The app now reads the
 `PORT` environment variable if set (for example on Render), defaulting to
 `5000` when run locally.
