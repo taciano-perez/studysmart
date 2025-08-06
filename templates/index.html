@@ -70,7 +70,10 @@
               </div>
               <div class="mb-3">
                 <label for="studyLength" class="form-label">How long (minutes)</label>
-                <input name="studyLength" type="range" class="form-range" id="studyLength" min="5" max="60">
+                <div class="d-flex align-items-center">
+                  <input name="studyLength" type="range" class="form-range flex-grow-1" id="studyLength" min="5" max="60">
+                  <span id="studyLengthValue" class="ms-2"></span>
+                </div>
               </div>
               <div class="mb-3">
                 <label for="studyDesc" class="form-label">What I studied</label>
@@ -103,7 +106,10 @@
               </div>
               <div class="mb-3">
                 <label for="sleepLength" class="form-label">How long (hours)</label>
-                <input name="sleepLength" type="range" class="form-range" id="sleepLength" min="0" max="12">
+                <div class="d-flex align-items-center">
+                  <input name="sleepLength" type="range" class="form-range flex-grow-1" id="sleepLength" min="0" max="12">
+                  <span id="sleepLengthValue" class="ms-2"></span>
+                </div>
               </div>
           </div>
           <div class="modal-footer">
@@ -148,6 +154,21 @@
         if (addModal) { addModal.hide(); }
         var sleepModal = new bootstrap.Modal(document.getElementById('sleepHoursModal'));
         sleepModal.show();
+    });
+
+    // update displayed values for sliders
+    const studyRange = document.getElementById('studyLength');
+    const studyValue = document.getElementById('studyLengthValue');
+    studyValue.textContent = studyRange.value;
+    studyRange.addEventListener('input', function() {
+        studyValue.textContent = studyRange.value;
+    });
+
+    const sleepRange = document.getElementById('sleepLength');
+    const sleepValue = document.getElementById('sleepLengthValue');
+    sleepValue.textContent = sleepRange.value;
+    sleepRange.addEventListener('input', function() {
+        sleepValue.textContent = sleepRange.value;
     });
 </script>
 <style>
