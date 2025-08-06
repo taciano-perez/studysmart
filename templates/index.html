@@ -87,7 +87,14 @@
     </div>
   </div>
   <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
-    week report
+    <div class="d-flex align-items-center">
+      <div class="d-flex flex-grow-1 me-2" style="height:20px;">
+        {% for color in week_colors %}
+        <div class="{{ color }} flex-fill border"></div>
+        {% endfor %}
+      </div>
+      <div><strong>{{ week_total }}</strong> min</div>
+    </div>
   </div>
 </div>
 {% endblock %}
