@@ -164,36 +164,61 @@
         display: inline-block;
         margin: 1px;
     }
+    .sleep-dot {
+        width: 6px;
+        height: 6px;
+        background-color: purple;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 1px;
+    }
 </style>
 <script>
     (function() {
         const studyData = {{ study_rows | tojson | safe }};
+        const sleepData = {{ sleep_rows | tojson | safe }};
         console.log('studyData from server', studyData);
-        const dayMap = {};
+        console.log('sleepData from server', sleepData);
+        const studyDayMap = {};
         studyData.forEach(function(row) {
             const day = new Date(row.study_date).getDate();
-            if (!dayMap[day]) {
-                dayMap[day] = [];
+            if (!studyDayMap[day]) {
+                studyDayMap[day] = [];
             }
-            dayMap[day].push(row);
+            studyDayMap[day].push(row);
         });
-        console.log('dayMap', dayMap);
+        const sleepDayMap = {};
+        sleepData.forEach(function(row) {
+            const day = new Date(row.sleep_date).getDate();
+            sleepDayMap[day] = row.number_hours;
+        });
+        console.log('studyDayMap', studyDayMap);
+        console.log('sleepDayMap', sleepDayMap);
 
         document.querySelectorAll('#calendar td').forEach(function(td) {
             const day = parseInt(td.textContent);
-            if (!isNaN(day) && dayMap[day]) {
-                console.log('Rendering dots for day', day, dayMap[day]);
+            if (!isNaN(day) && (studyDayMap[day] || sleepDayMap[day])) {
+                console.log('Rendering indicators for day', day);
                 const container = document.createElement('div');
                 container.className = 'study-dots';
                 td.appendChild(container);
-                dayMap[day].slice(0, 5).forEach(function(r) {
-                    const dot = document.createElement('span');
-                    dot.className = 'study-dot';
-                    dot.setAttribute('data-bs-toggle', 'tooltip');
-                    dot.setAttribute('data-bs-html', 'true');
-                    dot.setAttribute('title', 'minutes: ' + r.num_minutes + '<br>studied: ' + r.descr);
-                    container.appendChild(dot);
-                });
+                if (studyDayMap[day]) {
+                    studyDayMap[day].slice(0, 5).forEach(function(r) {
+                        const dot = document.createElement('span');
+                        dot.className = 'study-dot';
+                        dot.setAttribute('data-bs-toggle', 'tooltip');
+                        dot.setAttribute('data-bs-html', 'true');
+                        dot.setAttribute('title', 'minutes: ' + r.num_minutes + '<br>studied: ' + r.descr);
+                        container.appendChild(dot);
+                    });
+                }
+                if (sleepDayMap[day]) {
+                    const sdot = document.createElement('span');
+                    sdot.className = 'sleep-dot';
+                    sdot.setAttribute('data-bs-toggle', 'tooltip');
+                    sdot.setAttribute('title', 'hours: ' + sleepDayMap[day]);
+                    container.appendChild(sdot);
+                }
             }
         });
 

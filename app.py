@@ -97,6 +97,27 @@ def index():
     ]
     logging.info("Fetched %d study rows", len(rows))
     logging.debug("Study rows detail: %s", rows)
+    if USING_POSTGRES:
+        c.execute(
+            "SELECT date, number_hours FROM SLEEP_HOURS "
+            "WHERE to_char(date, 'YYYY-MM') = %s",
+            (now.strftime('%Y-%m'),),
+        )
+    else:
+        c.execute(
+            "SELECT date, number_hours FROM SLEEP_HOURS "
+            "WHERE strftime('%Y-%m', date) = ?",
+            (now.strftime('%Y-%m'),),
+        )
+    sleep_rows = [
+        {
+            "sleep_date": r[0],
+            "number_hours": r[1],
+        }
+        for r in c.fetchall()
+    ]
+    logging.info("Fetched %d sleep rows", len(sleep_rows))
+    logging.debug("Sleep rows detail: %s", sleep_rows)
     start_week = now - datetime.timedelta(days=now.weekday())
     end_week = start_week + datetime.timedelta(days=6)
     if USING_POSTGRES:
@@ -134,6 +155,7 @@ def index():
         calendar_html=cal,
         today=now.isoformat(),
         study_rows=rows,
+        sleep_rows=sleep_rows,
         week_total=week_total,
         week_num=week_num,
         week_colors=week_colors,
