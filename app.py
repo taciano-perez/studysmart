@@ -37,6 +37,13 @@ def init_db():
                 descr VARCHAR(500)
             )"""
         )
+        c.execute(
+            """CREATE TABLE IF NOT EXISTS SLEEP_HOURS (
+                id SERIAL PRIMARY KEY,
+                date DATE,
+                number_hours INTEGER
+            )"""
+        )
     else:
         c.execute(
             """CREATE TABLE IF NOT EXISTS STUDY_HOURS (
@@ -44,6 +51,13 @@ def init_db():
                 study_date TEXT,
                 num_minutes INTEGER,
                 descr VARCHAR(500)
+            )"""
+        )
+        c.execute(
+            """CREATE TABLE IF NOT EXISTS SLEEP_HOURS (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT,
+                number_hours INTEGER
             )"""
         )
     conn.commit()
@@ -146,6 +160,29 @@ def study_hours():
         )
     conn.commit()
     logging.info("Study hours inserted for %s", study_date)
+    conn.close()
+    return redirect(url_for('index'))
+
+
+@app.route('/sleep_hours', methods=['POST'])
+def sleep_hours():
+    sleep_date = request.form.get('sleepDate')
+    number_hours = request.form.get('sleepLength')
+    logging.info("Received sleep hours submission date=%s hours=%s", sleep_date, number_hours)
+    conn = get_conn()
+    c = conn.cursor()
+    if USING_POSTGRES:
+        c.execute(
+            'INSERT INTO SLEEP_HOURS (date, number_hours) VALUES (%s, %s)',
+            (sleep_date, int(number_hours)),
+        )
+    else:
+        c.execute(
+            'INSERT INTO SLEEP_HOURS (date, number_hours) VALUES (?, ?)',
+            (sleep_date, int(number_hours)),
+        )
+    conn.commit()
+    logging.info("Sleep hours inserted for %s", sleep_date)
     conn.close()
     return redirect(url_for('index'))
 

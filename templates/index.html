@@ -48,7 +48,7 @@
           </div>
           <div class="modal-body d-flex justify-content-around">
             <button id="studyHoursButton" class="btn btn-success">study hours</button>
-            <button class="btn btn-info">sleep time</button>
+            <button id="sleepHoursButton" class="btn btn-info">sleep time</button>
           </div>
         </div>
       </div>
@@ -86,6 +86,35 @@
       </div>
     </div>
   </div>
+
+    <!-- Sleep Hours Modal -->
+    <div class="modal fade" id="sleepHoursModal" tabindex="-1" aria-labelledby="sleepHoursLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="sleepHoursLabel">sleep time</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form id="sleepHoursForm" method="post" action="{{ url_for('sleep_hours') }}">
+          <div class="modal-body">
+              <div class="mb-3">
+                <label for="sleepDate" class="form-label">Date</label>
+                <input name="sleepDate" type="date" class="form-control" id="sleepDate" value="{{ today }}">
+              </div>
+              <div class="mb-3">
+                <label for="sleepLength" class="form-label">How long (hours)</label>
+                <input name="sleepLength" type="range" class="form-range" id="sleepLength" min="0" max="12">
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Confirm</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
   <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
     <div class="d-flex align-items-center">
       <div class="me-2">Week #{{ week_num }}</div>
@@ -112,6 +141,13 @@
         if (addModal) { addModal.hide(); }
         var shModal = new bootstrap.Modal(document.getElementById('studyHoursModal'));
         shModal.show();
+    });
+
+    document.getElementById('sleepHoursButton').addEventListener('click', function() {
+        var addModal = bootstrap.Modal.getInstance(document.getElementById('addModal'));
+        if (addModal) { addModal.hide(); }
+        var sleepModal = new bootstrap.Modal(document.getElementById('sleepHoursModal'));
+        sleepModal.show();
     });
 </script>
 <style>
