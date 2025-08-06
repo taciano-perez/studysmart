@@ -104,6 +104,7 @@ def index():
         idx = (dt - start_week).days
         week_minutes[idx] = total
     week_total = sum(week_minutes)
+    week_num = now.isocalendar()[1]
     week_colors = []
     for m in week_minutes:
         if m >= 60:
@@ -120,6 +121,7 @@ def index():
         today=now.isoformat(),
         study_rows=rows,
         week_total=week_total,
+        week_num=week_num,
         week_colors=week_colors,
     )
 
