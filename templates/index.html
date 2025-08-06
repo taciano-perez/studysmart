@@ -2,58 +2,84 @@
 {% block content %}
 <h1 class="mb-3">StudySmart</h1>
 <i>Helping Valentina make the grade</i>😉
-<div class="d-flex justify-content-end mb-2">
-    <button id="addButton" class="btn btn-primary">+</button>
-</div>
-<div id="calendar" class="border p-2">
-    {{ calendar_html|safe }}
-</div>
 
-<!-- Modal -->
-<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="addModalLabel">Add</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<ul class="nav nav-tabs mt-3" id="mainTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="rules-tab" data-bs-toggle="tab" data-bs-target="#rules" type="button" role="tab" aria-controls="rules" aria-selected="true">Rules</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar-pane" type="button" role="tab" aria-controls="calendar-pane" aria-selected="false">Calendar</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-controls="reports" aria-selected="false">Reports</button>
+  </li>
+</ul>
+
+<div class="tab-content mt-3" id="mainTabsContent">
+  <div class="tab-pane fade show active" id="rules" role="tabpanel" aria-labelledby="rules-tab">
+    <ol>
+      <li>rule #1</li>
+      <li>rule #2</li>
+    </ol>
+  </div>
+  <div class="tab-pane fade" id="calendar-pane" role="tabpanel" aria-labelledby="calendar-tab">
+    <div class="d-flex justify-content-end mb-2">
+        <button id="addButton" class="btn btn-primary">+</button>
+    </div>
+    <div id="calendar" class="border p-2">
+        {{ calendar_html|safe }}
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addModalLabel">Add</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body d-flex justify-content-around">
+            <button id="studyHoursButton" class="btn btn-success">study hours</button>
+            <button class="btn btn-info">sleep time</button>
+          </div>
+        </div>
       </div>
-      <div class="modal-body d-flex justify-content-around">
-        <button id="studyHoursButton" class="btn btn-success">study hours</button>
-        <button class="btn btn-info">sleep time</button>
+    </div>
+
+    <!-- Study Hours Modal -->
+    <div class="modal fade" id="studyHoursModal" tabindex="-1" aria-labelledby="studyHoursLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="studyHoursLabel">study hours</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form id="studyHoursForm" method="post" action="{{ url_for('study_hours') }}">
+          <div class="modal-body">
+              <div class="mb-3">
+                <label for="studyDate" class="form-label">Date</label>
+                <input name="studyDate" type="date" class="form-control" id="studyDate" value="{{ today }}">
+              </div>
+              <div class="mb-3">
+                <label for="studyLength" class="form-label">How long (minutes)</label>
+                <input name="studyLength" type="range" class="form-range" id="studyLength" min="5" max="60">
+              </div>
+              <div class="mb-3">
+                <label for="studyDesc" class="form-label">What I studied</label>
+                <textarea name="studyDesc" class="form-control" id="studyDesc" rows="3"></textarea>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Confirm</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
-</div>
-
-<!-- Study Hours Modal -->
-<div class="modal fade" id="studyHoursModal" tabindex="-1" aria-labelledby="studyHoursLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="studyHoursLabel">study hours</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form id="studyHoursForm" method="post" action="{{ url_for('study_hours') }}">
-      <div class="modal-body">
-          <div class="mb-3">
-            <label for="studyDate" class="form-label">Date</label>
-            <input name="studyDate" type="date" class="form-control" id="studyDate" value="{{ today }}">
-          </div>
-          <div class="mb-3">
-            <label for="studyLength" class="form-label">How long (minutes)</label>
-            <input name="studyLength" type="range" class="form-range" id="studyLength" min="5" max="60">
-          </div>
-          <div class="mb-3">
-            <label for="studyDesc" class="form-label">What I studied</label>
-            <textarea name="studyDesc" class="form-control" id="studyDesc" rows="3"></textarea>
-          </div>
-      </div>
-      <div class="modal-footer">
-        <button type="submit" class="btn btn-primary">Confirm</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-      </div>
-      </form>
-    </div>
+  <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+    week report
   </div>
 </div>
 {% endblock %}
