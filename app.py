@@ -141,8 +141,11 @@ def index():
     week_total = sum(week_minutes)
     week_num = now.isocalendar()[1]
     week_colors = []
-    for m in week_minutes:
-        if m >= 60:
+    today_idx = now.weekday()
+    for i, m in enumerate(week_minutes):
+        if i > today_idx:
+            week_colors.append('bg-white')
+        elif m >= 60:
             week_colors.append('bg-success')
         elif m > 0:
             week_colors.append('bg-warning')
