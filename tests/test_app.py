@@ -28,6 +28,8 @@ def test_index_page(client):
     assert response.status_code == 200
     assert b'StudySmart' in response.data
     assert b'<strong>0 / 300</strong> mins' in response.data
+    assert b'max="90"' in response.data
+    assert b'studied with a parent?' in response.data
 
 
 def test_add_study_hours(client):
@@ -40,10 +42,26 @@ def test_add_study_hours(client):
     assert response.status_code == 200
     conn = app.get_conn()
     cur = conn.cursor()
-    cur.execute('SELECT study_date, num_minutes, descr FROM STUDY_HOURS')
+    cur.execute('SELECT study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS')
     rows = cur.fetchall()
     conn.close()
-    assert rows == [(today, 30, 'Math')]
+    assert rows == [(today, 30, 'Math', 0)]
+
+
+def test_add_study_hours_with_parent(client):
+    today = datetime.date.today().isoformat()
+    response = client.post(
+        '/study_hours',
+        data={'studyDate': today, 'studyLength': '45', 'studyDesc': 'Science', 'studiedParent': '1'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    conn = app.get_conn()
+    cur = conn.cursor()
+    cur.execute('SELECT study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS')
+    rows = cur.fetchall()
+    conn.close()
+    assert rows == [(today, 45, 'Science', 1)]
 
 
 def test_add_sleep_hours(client):
