@@ -5,18 +5,18 @@
 
 <ul class="nav nav-tabs mt-3" id="mainTabs" role="tablist">
   <li class="nav-item" role="presentation">
-    <button class="nav-link " id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar-pane" type="button" role="tab" aria-controls="calendar-pane" aria-selected="false">Calendar</button>
+    <button class="nav-link active" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar-pane" type="button" role="tab" aria-controls="calendar-pane" aria-selected="true">Calendar</button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="rules-tab" data-bs-toggle="tab" data-bs-target="#rules" type="button" role="tab" aria-controls="rules" aria-selected="true">Targets</button>
+    <button class="nav-link" id="rules-tab" data-bs-toggle="tab" data-bs-target="#rules" type="button" role="tab" aria-controls="rules" aria-selected="false">Targets</button>
   </li>
   <li class="nav-item" role="presentation">
     <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-controls="reports" aria-selected="false">Reports</button>
   </li>
 </ul>
 
-<div class="tab-content mt-3" id="mainTabsContent">
-  <div class="tab-pane fade show active" id="rules" role="tabpanel" aria-labelledby="rules-tab">
+  <div class="tab-content mt-3" id="mainTabsContent">
+  <div class="tab-pane fade" id="rules" role="tabpanel" aria-labelledby="rules-tab">
     <ol>
       <li><b>Study a minimum of five hours per week.</b> One cannot learn without regular practice.</li>
       <li><b>When studying, turn off distractions.</b> You can't learn to concentrate if you self-interrupt.</li>
@@ -30,7 +30,7 @@
       <li>The goal is to keep your grades out of the red zone. If they're in danger of going red, ask for help. We can help you, or hire tutors.</li>
     </ol>
   </div>
-  <div class="tab-pane fade" id="calendar-pane" role="tabpanel" aria-labelledby="calendar-tab">
+  <div class="tab-pane fade show active" id="calendar-pane" role="tabpanel" aria-labelledby="calendar-tab">
     <div class="d-flex justify-content-end mb-2">
         <button id="addButton" class="btn btn-primary">+</button>
     </div>
