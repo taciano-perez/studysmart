@@ -27,6 +27,7 @@ def test_index_page(client):
     response = client.get('/')
     assert response.status_code == 200
     assert b'StudySmart' in response.data
+    assert b'<strong>0 / 300</strong> mins' in response.data
 
 
 def test_add_study_hours(client):
