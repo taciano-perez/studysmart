@@ -2,7 +2,7 @@ services:
   - type: web
     name: studysmart
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && pytest
     startCommand: gunicorn app:app
     envVars:
       - key: DATABASE_URL
