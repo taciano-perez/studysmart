@@ -78,3 +78,47 @@ def test_add_sleep_hours(client):
     rows = cur.fetchall()
     conn.close()
     assert rows == [(today, 8)]
+
+
+def test_delete_study_entry(client):
+    today = datetime.date.today().isoformat()
+    client.post(
+        '/study_hours',
+        data={'studyDate': today, 'studyLength': '20', 'studyDesc': 'History'},
+        follow_redirects=True,
+    )
+    conn = app.get_conn()
+    cur = conn.cursor()
+    cur.execute('SELECT id FROM STUDY_HOURS')
+    row_id = cur.fetchone()[0]
+    conn.close()
+    resp = client.post(f'/delete/study/{row_id}')
+    assert resp.status_code == 204
+    conn = app.get_conn()
+    cur = conn.cursor()
+    cur.execute('SELECT COUNT(*) FROM STUDY_HOURS')
+    count = cur.fetchone()[0]
+    conn.close()
+    assert count == 0
+
+
+def test_delete_sleep_entry(client):
+    today = datetime.date.today().isoformat()
+    client.post(
+        '/sleep_hours',
+        data={'sleepDate': today, 'sleepLength': '7'},
+        follow_redirects=True,
+    )
+    conn = app.get_conn()
+    cur = conn.cursor()
+    cur.execute('SELECT id FROM SLEEP_HOURS')
+    row_id = cur.fetchone()[0]
+    conn.close()
+    resp = client.post(f'/delete/sleep/{row_id}')
+    assert resp.status_code == 204
+    conn = app.get_conn()
+    cur = conn.cursor()
+    cur.execute('SELECT COUNT(*) FROM SLEEP_HOURS')
+    count = cur.fetchone()[0]
+    conn.close()
+    assert count == 0

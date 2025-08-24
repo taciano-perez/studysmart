@@ -216,7 +216,7 @@
         const sleepDayMap = {};
         sleepData.forEach(function(row) {
             const day = new Date(row.sleep_date).getDate();
-            sleepDayMap[day] = row.number_hours;
+            sleepDayMap[day] = row;
         });
         console.log('studyDayMap', studyDayMap);
         console.log('sleepDayMap', sleepDayMap);
@@ -234,7 +234,13 @@
                         dot.className = 'study-dot';
                         dot.setAttribute('data-bs-toggle', 'tooltip');
                         dot.setAttribute('data-bs-html', 'true');
-                        dot.setAttribute('title', 'minutes: ' + r.num_minutes + '<br>studied: ' + r.descr);
+                        dot.setAttribute('title',
+                            '<div class="d-flex justify-content-between align-items-start"><div><div>minutes: ' +
+                            r.num_minutes +
+                            '</div><div>studied: ' + r.descr +
+                            '</div></div><button class="btn btn-sm btn-outline-danger ms-2 delete-btn" data-type="study" data-id="' +
+                            r.id + '">🗑️</button></div>'
+                        );
                         container.appendChild(dot);
                     });
                 }
@@ -242,14 +248,32 @@
                     const sdot = document.createElement('span');
                     sdot.className = 'sleep-dot';
                     sdot.setAttribute('data-bs-toggle', 'tooltip');
-                    sdot.setAttribute('title', 'hours: ' + sleepDayMap[day]);
+                    sdot.setAttribute('data-bs-html', 'true');
+                    sdot.setAttribute('title',
+                        '<div class="d-flex justify-content-between align-items-start"><div>hours: ' +
+                        sleepDayMap[day].number_hours +
+                        '</div><button class="btn btn-sm btn-outline-danger ms-2 delete-btn" data-type="sleep" data-id="' +
+                        sleepDayMap[day].id + '">🗑️</button></div>'
+                    );
                     container.appendChild(sdot);
                 }
             }
         });
 
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach(function(el) { new bootstrap.Tooltip(el); });
+        tooltipTriggerList.forEach(function(el) { new bootstrap.Tooltip(el, { sanitize: false }); });
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('delete-btn')) {
+                const id = e.target.getAttribute('data-id');
+                const type = e.target.getAttribute('data-type');
+                if (confirm('are you sure you want to delete it?')) {
+                    fetch('/delete/' + type + '/' + id, { method: 'POST' }).then(function() {
+                        location.reload();
+                    });
+                }
+            }
+        });
     })();
 </script>
 {% endblock %}

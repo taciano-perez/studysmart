@@ -88,22 +88,23 @@ def index():
     c = conn.cursor()
     if USING_POSTGRES:
         c.execute(
-            "SELECT study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS "
+            "SELECT id, study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS "
             "WHERE to_char(study_date, 'YYYY-MM') = %s",
             (now.strftime('%Y-%m'),),
         )
     else:
         c.execute(
-            "SELECT study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS "
+            "SELECT id, study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS "
             "WHERE strftime('%Y-%m', study_date) = ?",
             (now.strftime('%Y-%m'),),
         )
     rows = [
         {
-            "study_date": r[0],
-            "num_minutes": r[1],
-            "descr": r[2],
-            "studied_parent": bool(r[3]),
+            "id": r[0],
+            "study_date": r[1],
+            "num_minutes": r[2],
+            "descr": r[3],
+            "studied_parent": bool(r[4]),
         }
         for r in c.fetchall()
     ]
@@ -111,20 +112,21 @@ def index():
     logging.debug("Study rows detail: %s", rows)
     if USING_POSTGRES:
         c.execute(
-            "SELECT date, number_hours FROM SLEEP_HOURS "
+            "SELECT id, date, number_hours FROM SLEEP_HOURS "
             "WHERE to_char(date, 'YYYY-MM') = %s",
             (now.strftime('%Y-%m'),),
         )
     else:
         c.execute(
-            "SELECT date, number_hours FROM SLEEP_HOURS "
+            "SELECT id, date, number_hours FROM SLEEP_HOURS "
             "WHERE strftime('%Y-%m', date) = ?",
             (now.strftime('%Y-%m'),),
         )
     sleep_rows = [
         {
-            "sleep_date": r[0],
-            "number_hours": r[1],
+            "id": r[0],
+            "sleep_date": r[1],
+            "number_hours": r[2],
         }
         for r in c.fetchall()
     ]
@@ -228,6 +230,30 @@ def sleep_hours():
     logging.info("Sleep hours inserted for %s", sleep_date)
     conn.close()
     return redirect(url_for('index'))
+
+
+@app.route('/delete/<string:entry_type>/<int:entry_id>', methods=['POST'])
+def delete_entry(entry_type, entry_id):
+    logging.info("Deleting %s entry with id=%s", entry_type, entry_id)
+    conn = get_conn()
+    c = conn.cursor()
+    if entry_type == 'study':
+        if USING_POSTGRES:
+            c.execute('DELETE FROM STUDY_HOURS WHERE id = %s', (entry_id,))
+        else:
+            c.execute('DELETE FROM STUDY_HOURS WHERE id = ?', (entry_id,))
+    elif entry_type == 'sleep':
+        if USING_POSTGRES:
+            c.execute('DELETE FROM SLEEP_HOURS WHERE id = %s', (entry_id,))
+        else:
+            c.execute('DELETE FROM SLEEP_HOURS WHERE id = ?', (entry_id,))
+    else:
+        conn.close()
+        logging.warning("Invalid entry type for deletion: %s", entry_type)
+        return ('Invalid type', 400)
+    conn.commit()
+    conn.close()
+    return ('', 204)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
