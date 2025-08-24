@@ -28,7 +28,7 @@ def test_index_page(client):
     assert response.status_code == 200
     assert b'StudySmart' in response.data
     assert b'<strong>0 / 300</strong> mins' in response.data
-    assert b'max="90"' in response.data
+    assert b'value="30"' in response.data
     assert b'studied with a parent?' in response.data
 
 

@@ -71,10 +71,7 @@
               </div>
               <div class="mb-3">
                 <label for="studyLength" class="form-label">How long (minutes)</label>
-                <div class="d-flex align-items-center">
-                  <input name="studyLength" type="range" class="form-range flex-grow-1" id="studyLength" min="5" max="90">
-                  <span id="studyLengthValue" class="ms-2"></span>
-                </div>
+                <input name="studyLength" type="text" class="form-control" id="studyLength" value="30">
               </div>
               <div class="form-check mb-3">
                 <input name="studiedParent" type="checkbox" class="form-check-input" id="studiedParent">
@@ -150,6 +147,7 @@
     document.getElementById('studyHoursButton').addEventListener('click', function() {
         var addModal = bootstrap.Modal.getInstance(document.getElementById('addModal'));
         if (addModal) { addModal.hide(); }
+        document.getElementById('studyLength').value = 30;
         var shModal = new bootstrap.Modal(document.getElementById('studyHoursModal'));
         shModal.show();
     });
@@ -161,14 +159,7 @@
         sleepModal.show();
     });
 
-    // update displayed values for sliders
-    const studyRange = document.getElementById('studyLength');
-    const studyValue = document.getElementById('studyLengthValue');
-    studyValue.textContent = studyRange.value;
-    studyRange.addEventListener('input', function() {
-        studyValue.textContent = studyRange.value;
-    });
-
+    // update displayed values for sleep slider
     const sleepRange = document.getElementById('sleepLength');
     const sleepValue = document.getElementById('sleepLengthValue');
     sleepValue.textContent = sleepRange.value;
