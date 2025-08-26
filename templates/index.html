@@ -133,6 +133,15 @@
       </div>
       <div><strong>{{ week_total }} / 300</strong> mins</div>
     </div>
+    <div class="d-flex align-items-center mt-2">
+      <div class="me-2">Week #{{ prev_week_num }}</div>
+      <div class="d-flex flex-grow-1 me-2" style="height:20px;">
+        {% for color in prev_week_colors %}
+        <div class="{{ color }} flex-fill border"></div>
+        {% endfor %}
+      </div>
+      <div><strong>{{ prev_week_total }} / 300</strong> mins</div>
+    </div>
   </div>
 </div>
 {% endblock %}

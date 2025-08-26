@@ -30,6 +30,11 @@ def test_index_page(client):
     assert b'<strong>0 / 300</strong> mins' in response.data
     assert b'value="30"' in response.data
     assert b'studied with a parent?' in response.data
+    today = datetime.date.today()
+    week_num = today.isocalendar()[1]
+    prev_week_num = (today - datetime.timedelta(days=7)).isocalendar()[1]
+    assert f"Week #{week_num}".encode() in response.data
+    assert f"Week #{prev_week_num}".encode() in response.data
 
 
 def test_add_study_hours(client):

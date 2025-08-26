@@ -157,7 +157,7 @@ def index():
     week_colors = []
     today_idx = now.weekday()
     for i, m in enumerate(week_minutes):
-        if i > today_idx:
+        if i >= today_idx:
             week_colors.append('bg-white')
         elif m >= 60:
             week_colors.append('bg-success')
@@ -165,6 +165,37 @@ def index():
             week_colors.append('bg-warning')
         else:
             week_colors.append('bg-secondary' if week_total >= 300 else 'bg-danger')
+
+    prev_start_week = start_week - datetime.timedelta(days=7)
+    prev_end_week = start_week - datetime.timedelta(days=1)
+    if USING_POSTGRES:
+        c.execute(
+            "SELECT study_date, SUM(num_minutes) FROM STUDY_HOURS "
+            "WHERE study_date BETWEEN %s AND %s GROUP BY study_date",
+            (prev_start_week, prev_end_week),
+        )
+    else:
+        c.execute(
+            "SELECT study_date, SUM(num_minutes) FROM STUDY_HOURS "
+            "WHERE study_date BETWEEN ? AND ? GROUP BY study_date",
+            (prev_start_week.isoformat(), prev_end_week.isoformat()),
+        )
+    prev_week_rows = c.fetchall()
+    prev_week_minutes = [0] * 7
+    for d, total in prev_week_rows:
+        dt = d if isinstance(d, datetime.date) else datetime.date.fromisoformat(d)
+        idx = (dt - prev_start_week).days
+        prev_week_minutes[idx] = total
+    prev_week_total = sum(prev_week_minutes)
+    prev_week_num = (now - datetime.timedelta(days=7)).isocalendar()[1]
+    prev_week_colors = []
+    for m in prev_week_minutes:
+        if m >= 60:
+            prev_week_colors.append('bg-success')
+        elif m > 0:
+            prev_week_colors.append('bg-warning')
+        else:
+            prev_week_colors.append('bg-secondary' if prev_week_total >= 300 else 'bg-danger')
     conn.close()
 
     return render_template(
@@ -176,6 +207,9 @@ def index():
         week_total=week_total,
         week_num=week_num,
         week_colors=week_colors,
+        prev_week_total=prev_week_total,
+        prev_week_num=prev_week_num,
+        prev_week_colors=prev_week_colors,
     )
 
 
