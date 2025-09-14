@@ -35,11 +35,15 @@ def init_db():
                 study_date DATE,
                 num_minutes INTEGER,
                 descr VARCHAR(500),
-                studied_parent BOOLEAN DEFAULT FALSE
+                studied_parent BOOLEAN DEFAULT FALSE,
+                notes VARCHAR(250)
             )"""
         )
         c.execute(
             "ALTER TABLE STUDY_HOURS ADD COLUMN IF NOT EXISTS studied_parent BOOLEAN DEFAULT FALSE"
+        )
+        c.execute(
+            "ALTER TABLE STUDY_HOURS ADD COLUMN IF NOT EXISTS notes VARCHAR(250)"
         )
         c.execute(
             """CREATE TABLE IF NOT EXISTS SLEEP_HOURS (
@@ -55,7 +59,8 @@ def init_db():
                 study_date TEXT,
                 num_minutes INTEGER,
                 descr VARCHAR(500),
-                studied_parent INTEGER DEFAULT 0
+                studied_parent INTEGER DEFAULT 0,
+                notes TEXT
             )"""
         )
         c.execute(
@@ -71,8 +76,12 @@ def init_db():
             c.execute(
                 "ALTER TABLE STUDY_HOURS ADD COLUMN studied_parent INTEGER DEFAULT 0"
             )
-    conn.commit()
-    conn.close()
+        if 'notes' not in cols:
+            c.execute(
+                "ALTER TABLE STUDY_HOURS ADD COLUMN notes TEXT"
+            )
+        conn.commit()
+        conn.close()
 
 init_db()
 
@@ -111,13 +120,13 @@ def index():
     c = conn.cursor()
     if USING_POSTGRES:
         c.execute(
-            "SELECT id, study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS "
+            "SELECT id, study_date, num_minutes, descr, studied_parent, notes FROM STUDY_HOURS "
             "WHERE to_char(study_date, 'YYYY-MM') = %s",
             (display_month_str,),
         )
     else:
         c.execute(
-            "SELECT id, study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS "
+            "SELECT id, study_date, num_minutes, descr, studied_parent, notes FROM STUDY_HOURS "
             "WHERE strftime('%Y-%m', study_date) = ?",
             (display_month_str,),
         )
@@ -128,6 +137,7 @@ def index():
             "num_minutes": r[2],
             "descr": r[3],
             "studied_parent": bool(r[4]),
+            "notes": r[5],
         }
         for r in c.fetchall()
     ]
@@ -247,6 +257,8 @@ def study_hours():
     num_minutes = request.form.get('studyLength')
     descr = request.form.get('studyDesc', '')
     descr = descr.strip().lower()
+    notes = request.form.get('studyNotes', '')
+    notes = notes.strip()
     studied_parent = bool(request.form.get('studiedParent'))
     logging.info(
         "Received study hours submission date=%s minutes=%s parent=%s",
@@ -258,13 +270,13 @@ def study_hours():
     c = conn.cursor()
     if USING_POSTGRES:
         c.execute(
-            'INSERT INTO STUDY_HOURS (study_date, num_minutes, descr, studied_parent) VALUES (%s, %s, %s, %s)',
-            (study_date, int(num_minutes), descr[:500], studied_parent),
+            'INSERT INTO STUDY_HOURS (study_date, num_minutes, descr, studied_parent, notes) VALUES (%s, %s, %s, %s, %s)',
+            (study_date, int(num_minutes), descr[:500], studied_parent, notes[:250] if notes else None),
         )
     else:
         c.execute(
-            'INSERT INTO STUDY_HOURS (study_date, num_minutes, descr, studied_parent) VALUES (?, ?, ?, ?)',
-            (study_date, int(num_minutes), descr[:500], int(studied_parent)),
+            'INSERT INTO STUDY_HOURS (study_date, num_minutes, descr, studied_parent, notes) VALUES (?, ?, ?, ?, ?)',
+            (study_date, int(num_minutes), descr[:500], int(studied_parent), notes[:250] if notes else None),
         )
     conn.commit()
     logging.info("Study hours inserted for %s", study_date)
