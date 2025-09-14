@@ -81,8 +81,31 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     now = datetime.date.today()
-    logging.info("Rendering index for %s", now.isoformat())
-    cal = calendar.HTMLCalendar(calendar.MONDAY).formatmonth(now.year, now.month)
+    month_str = request.args.get('month')
+    if month_str:
+        try:
+            display_month = datetime.datetime.strptime(month_str, '%Y-%m').date()
+            display_month = display_month.replace(day=1)
+        except ValueError:
+            display_month = now.replace(day=1)
+    else:
+        display_month = now.replace(day=1)
+
+    logging.info(
+        "Rendering index for %s (current month %s)",
+        display_month.isoformat(),
+        now.isoformat(),
+    )
+    cal = calendar.HTMLCalendar(calendar.MONDAY).formatmonth(
+        display_month.year, display_month.month
+    )
+
+    display_month_str = display_month.strftime('%Y-%m')
+    prev_month = (display_month - datetime.timedelta(days=1)).replace(day=1)
+    next_month_candidate = (display_month + datetime.timedelta(days=31)).replace(day=1)
+    next_month = (
+        next_month_candidate if next_month_candidate <= now.replace(day=1) else None
+    )
 
     conn = get_conn()
     c = conn.cursor()
@@ -90,13 +113,13 @@ def index():
         c.execute(
             "SELECT id, study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS "
             "WHERE to_char(study_date, 'YYYY-MM') = %s",
-            (now.strftime('%Y-%m'),),
+            (display_month_str,),
         )
     else:
         c.execute(
             "SELECT id, study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS "
             "WHERE strftime('%Y-%m', study_date) = ?",
-            (now.strftime('%Y-%m'),),
+            (display_month_str,),
         )
     rows = [
         {
@@ -114,13 +137,13 @@ def index():
         c.execute(
             "SELECT id, date, number_hours FROM SLEEP_HOURS "
             "WHERE to_char(date, 'YYYY-MM') = %s",
-            (now.strftime('%Y-%m'),),
+            (display_month_str,),
         )
     else:
         c.execute(
             "SELECT id, date, number_hours FROM SLEEP_HOURS "
             "WHERE strftime('%Y-%m', date) = ?",
-            (now.strftime('%Y-%m'),),
+            (display_month_str,),
         )
     sleep_rows = [
         {
@@ -210,6 +233,8 @@ def index():
         prev_week_total=prev_week_total,
         prev_week_num=prev_week_num,
         prev_week_colors=prev_week_colors,
+        prev_month=prev_month.strftime('%Y-%m'),
+        next_month=(next_month.strftime('%Y-%m') if next_month else None),
     )
 
 
