@@ -213,6 +213,9 @@
         display: inline-block;
         margin: 1px;
     }
+    .study-dot-parent {
+        background-color: lightblue;
+    }
     .sleep-dot {
         width: 12px;
         height: 12px;
@@ -254,7 +257,7 @@
                 if (studyDayMap[day]) {
                     studyDayMap[day].slice(0, 5).forEach(function(r) {
                         const dot = document.createElement('span');
-                        dot.className = 'study-dot';
+                        dot.className = r.studied_parent ? 'study-dot study-dot-parent' : 'study-dot';
                         dot.setAttribute('data-bs-toggle', 'tooltip');
                         dot.setAttribute('data-bs-html', 'true');
                         dot.setAttribute('title',

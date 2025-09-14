@@ -88,6 +88,8 @@ def test_add_study_hours_with_parent(client):
     rows = cur.fetchall()
     conn.close()
     assert rows == [(today, 45, 'science', 1)]
+    assert b'"studied_parent": true' in response.data
+    assert b'study-dot-parent' in response.data
 
 
 def test_add_sleep_hours(client):
