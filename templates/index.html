@@ -88,6 +88,10 @@
                 <label for="studyDesc" class="form-label">What I studied</label>
                 <textarea name="studyDesc" class="form-control" id="studyDesc" rows="3"></textarea>
               </div>
+              <div class="mb-3">
+                <label for="studyNotes" class="form-label">Notes (optional)</label>
+                <textarea name="studyNotes" class="form-control" id="studyNotes" rows="2" maxlength="250"></textarea>
+              </div>
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Confirm</button>
@@ -264,6 +268,7 @@
                             '<div class="d-flex justify-content-between align-items-start"><div><div>minutes: ' +
                             r.num_minutes +
                             '</div><div>studied: ' + r.descr +
+                            (r.notes ? '</div><div>notes: ' + r.notes : '') +
                             '</div></div><button class="btn btn-sm btn-outline-danger ms-2 delete-btn" data-type="study" data-id="' +
                             r.id + '">🗑️</button></div>'
                         );

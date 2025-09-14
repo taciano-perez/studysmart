@@ -59,16 +59,16 @@ def test_add_study_hours(client):
     today = datetime.date.today().isoformat()
     response = client.post(
         '/study_hours',
-        data={'studyDate': today, 'studyLength': '30', 'studyDesc': ' Math '},
+        data={'studyDate': today, 'studyLength': '30', 'studyDesc': ' Math ', 'studyNotes': 'Reviewed algebra'},
         follow_redirects=True,
     )
     assert response.status_code == 200
     conn = app.get_conn()
     cur = conn.cursor()
-    cur.execute('SELECT study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS')
+    cur.execute('SELECT study_date, num_minutes, descr, studied_parent, notes FROM STUDY_HOURS')
     rows = cur.fetchall()
     conn.close()
-    assert rows == [(today, 30, 'math', 0)]
+    assert rows == [(today, 30, 'math', 0, 'Reviewed algebra')]
     assert b'math:' in response.data
     assert b'0.5 hours' in response.data
     assert b'progress-bar' in response.data
@@ -84,10 +84,10 @@ def test_add_study_hours_with_parent(client):
     assert response.status_code == 200
     conn = app.get_conn()
     cur = conn.cursor()
-    cur.execute('SELECT study_date, num_minutes, descr, studied_parent FROM STUDY_HOURS')
+    cur.execute('SELECT study_date, num_minutes, descr, studied_parent, notes FROM STUDY_HOURS')
     rows = cur.fetchall()
     conn.close()
-    assert rows == [(today, 45, 'science', 1)]
+    assert rows == [(today, 45, 'science', 1, None)]
     assert b'"studied_parent": true' in response.data
     assert b'study-dot-parent' in response.data
 
