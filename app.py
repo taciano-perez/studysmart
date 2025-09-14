@@ -220,6 +220,12 @@ def index():
     subject_totals = [
         {"descr": (r[0] or ''), "num_minutes": r[1]} for r in c.fetchall()
     ]
+    max_minutes = max((r["num_minutes"] for r in subject_totals), default=0)
+    for r in subject_totals:
+        r["num_hours"] = round(r["num_minutes"] / 60.0, 2)
+        r["percent"] = (
+            r["num_minutes"] / max_minutes * 100 if max_minutes else 0
+        )
     conn.close()
 
     return render_template(
@@ -240,6 +246,7 @@ def study_hours():
     study_date = request.form.get('studyDate')
     num_minutes = request.form.get('studyLength')
     descr = request.form.get('studyDesc', '')
+    descr = descr.strip().lower()
     studied_parent = bool(request.form.get('studiedParent'))
     logging.info(
         "Received study hours submission date=%s minutes=%s parent=%s",
