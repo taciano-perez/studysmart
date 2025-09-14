@@ -36,6 +36,21 @@ def test_index_page(client):
     assert f"Week #{week_num}".encode() in response.data
     assert f"Week #{prev_week_num}".encode() in response.data
 
+    first_of_month = today.replace(day=1)
+    prev_month = (first_of_month - datetime.timedelta(days=1)).replace(day=1)
+    next_month = (first_of_month + datetime.timedelta(days=31)).replace(day=1)
+    assert f"?month={prev_month.strftime('%Y-%m')}".encode() in response.data
+    assert f"?month={next_month.strftime('%Y-%m')}".encode() not in response.data
+
+
+def test_previous_month_navigation(client):
+    today = datetime.date.today().replace(day=1)
+    prev_month = (today - datetime.timedelta(days=1)).replace(day=1)
+    resp = client.get(f'/?month={prev_month.strftime("%Y-%m")}')
+    assert resp.status_code == 200
+    # Next link should point to current month
+    assert f"?month={today.strftime('%Y-%m')}".encode() in resp.data
+
 
 def test_add_study_hours(client):
     today = datetime.date.today().isoformat()
