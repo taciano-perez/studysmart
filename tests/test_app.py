@@ -31,10 +31,13 @@ def test_index_page(client):
     assert b'value="30"' in response.data
     assert b'studied with a parent?' in response.data
     today = datetime.date.today()
-    week_num = today.isocalendar()[1]
-    prev_week_num = (today - datetime.timedelta(days=7)).isocalendar()[1]
-    assert f"Week #{week_num}".encode() in response.data
-    assert f"Week #{prev_week_num}".encode() in response.data
+    week_nums = [
+        (today - datetime.timedelta(days=7 * i)).isocalendar()[1]
+        for i in range(4)
+    ]
+    for num in week_nums:
+        assert f"Week #{num}".encode() in response.data
+    assert b'Study hours per subject' in response.data
 
     first_of_month = today.replace(day=1)
     prev_month = (first_of_month - datetime.timedelta(days=1)).replace(day=1)
@@ -66,6 +69,7 @@ def test_add_study_hours(client):
     rows = cur.fetchall()
     conn.close()
     assert rows == [(today, 30, 'Math', 0)]
+    assert b'Math: 30' in response.data
 
 
 def test_add_study_hours_with_parent(client):
