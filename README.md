@@ -1,6 +1,10 @@
 # StudySmart
 
-A web application to help high schoolers to manage their study and sleep hours.
+A web application to help high schoolers to manage their study and sleep hours. I have created it to help my daughter track & plan her studies.
+
+It also served as a vehicle for me to explore how to use AI agents for coding. StudySmart has been entirely developed using OpenAI's Codex. For this project, I followed the "vibe coding" approach, where I hardly did any reviews of the code.
+
+The application consists of a Python frontend and a SQL database. It is deployed to Render.com.
 
 ## Setup
 
@@ -29,5 +33,3 @@ On Render, if the `DATABASE_URL` environment variable is provided (for example b
 attaching the **studysmart** PostgreSQL database), the app connects to that
 database instead. The SQLite file `studysmart.db` is only created when no
 external database URL is present.
-
-The application uses SQLite to store study hours. 
