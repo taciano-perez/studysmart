@@ -156,69 +156,63 @@ def index():
     logging.info("Fetched %d sleep rows", len(sleep_rows))
     logging.debug("Sleep rows detail: %s", sleep_rows)
     start_week = now - datetime.timedelta(days=now.weekday())
-    end_week = start_week + datetime.timedelta(days=6)
-    if USING_POSTGRES:
-        c.execute(
-            "SELECT study_date, SUM(num_minutes) FROM STUDY_HOURS "
-            "WHERE study_date BETWEEN %s AND %s GROUP BY study_date",
-            (start_week, end_week),
-        )
-    else:
-        c.execute(
-            "SELECT study_date, SUM(num_minutes) FROM STUDY_HOURS "
-            "WHERE study_date BETWEEN ? AND ? GROUP BY study_date",
-            (start_week.isoformat(), end_week.isoformat()),
-        )
-    week_rows = c.fetchall()
-    week_minutes = [0] * 7
-    for d, total in week_rows:
-        dt = d if isinstance(d, datetime.date) else datetime.date.fromisoformat(d)
-        idx = (dt - start_week).days
-        week_minutes[idx] = total
-    week_total = sum(week_minutes)
-    week_num = now.isocalendar()[1]
-    week_colors = []
-    today_idx = now.weekday()
-    for i, m in enumerate(week_minutes):
-        if i >= today_idx:
-            week_colors.append('bg-white')
-        elif m >= 60:
-            week_colors.append('bg-success')
-        elif m > 0:
-            week_colors.append('bg-warning')
+    weeks = []
+    for i in range(4):
+        week_start = start_week - datetime.timedelta(days=7 * i)
+        week_end = week_start + datetime.timedelta(days=6)
+        if USING_POSTGRES:
+            c.execute(
+                "SELECT study_date, SUM(num_minutes) FROM STUDY_HOURS "
+                "WHERE study_date BETWEEN %s AND %s GROUP BY study_date",
+                (week_start, week_end),
+            )
         else:
-            week_colors.append('bg-secondary' if week_total >= 300 else 'bg-danger')
+            c.execute(
+                "SELECT study_date, SUM(num_minutes) FROM STUDY_HOURS "
+                "WHERE study_date BETWEEN ? AND ? GROUP BY study_date",
+                (week_start.isoformat(), week_end.isoformat()),
+            )
+        week_rows = c.fetchall()
+        week_minutes = [0] * 7
+        for d, total in week_rows:
+            dt = d if isinstance(d, datetime.date) else datetime.date.fromisoformat(d)
+            idx = (dt - week_start).days
+            week_minutes[idx] = total
+        week_total = sum(week_minutes)
+        week_colors = []
+        if i == 0:
+            today_idx = now.weekday()
+            for j, m in enumerate(week_minutes):
+                if j >= today_idx:
+                    week_colors.append('bg-white')
+                elif m >= 60:
+                    week_colors.append('bg-success')
+                elif m > 0:
+                    week_colors.append('bg-warning')
+                else:
+                    week_colors.append('bg-secondary' if week_total >= 300 else 'bg-danger')
+        else:
+            for m in week_minutes:
+                if m >= 60:
+                    week_colors.append('bg-success')
+                elif m > 0:
+                    week_colors.append('bg-warning')
+                else:
+                    week_colors.append('bg-secondary' if week_total >= 300 else 'bg-danger')
+        week_num = (now - datetime.timedelta(days=7 * i)).isocalendar()[1]
+        weeks.append({'week_num': week_num, 'colors': week_colors, 'total': week_total})
 
-    prev_start_week = start_week - datetime.timedelta(days=7)
-    prev_end_week = start_week - datetime.timedelta(days=1)
     if USING_POSTGRES:
         c.execute(
-            "SELECT study_date, SUM(num_minutes) FROM STUDY_HOURS "
-            "WHERE study_date BETWEEN %s AND %s GROUP BY study_date",
-            (prev_start_week, prev_end_week),
+            "SELECT descr, SUM(num_minutes) FROM STUDY_HOURS GROUP BY descr"
         )
     else:
         c.execute(
-            "SELECT study_date, SUM(num_minutes) FROM STUDY_HOURS "
-            "WHERE study_date BETWEEN ? AND ? GROUP BY study_date",
-            (prev_start_week.isoformat(), prev_end_week.isoformat()),
+            "SELECT descr, SUM(num_minutes) FROM STUDY_HOURS GROUP BY descr"
         )
-    prev_week_rows = c.fetchall()
-    prev_week_minutes = [0] * 7
-    for d, total in prev_week_rows:
-        dt = d if isinstance(d, datetime.date) else datetime.date.fromisoformat(d)
-        idx = (dt - prev_start_week).days
-        prev_week_minutes[idx] = total
-    prev_week_total = sum(prev_week_minutes)
-    prev_week_num = (now - datetime.timedelta(days=7)).isocalendar()[1]
-    prev_week_colors = []
-    for m in prev_week_minutes:
-        if m >= 60:
-            prev_week_colors.append('bg-success')
-        elif m > 0:
-            prev_week_colors.append('bg-warning')
-        else:
-            prev_week_colors.append('bg-secondary' if prev_week_total >= 300 else 'bg-danger')
+    subject_totals = [
+        {"descr": (r[0] or ''), "num_minutes": r[1]} for r in c.fetchall()
+    ]
     conn.close()
 
     return render_template(
@@ -227,12 +221,8 @@ def index():
         today=now.isoformat(),
         study_rows=rows,
         sleep_rows=sleep_rows,
-        week_total=week_total,
-        week_num=week_num,
-        week_colors=week_colors,
-        prev_week_total=prev_week_total,
-        prev_week_num=prev_week_num,
-        prev_week_colors=prev_week_colors,
+        weeks=weeks,
+        subject_totals=subject_totals,
         prev_month=prev_month.strftime('%Y-%m'),
         next_month=(next_month.strftime('%Y-%m') if next_month else None),
     )
