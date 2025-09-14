@@ -146,3 +146,29 @@ def test_delete_sleep_entry(client):
     count = cur.fetchone()[0]
     conn.close()
     assert count == 0
+
+
+def test_weekly_goal_marks_remaining_days_gray(client):
+    today = datetime.date.today()
+    week_start = today - datetime.timedelta(days=today.weekday())
+    minutes = [120, 120, 60, 50]
+    for offset, mins in enumerate(minutes):
+        date = (week_start + datetime.timedelta(days=offset)).isoformat()
+        client.post(
+            '/study_hours',
+            data={'studyDate': date, 'studyLength': str(mins), 'studyDesc': 'Test'},
+            follow_redirects=True,
+        )
+
+    resp = client.get('/')
+    html = resp.data.decode('utf-8')
+    week_num = today.isocalendar()[1]
+    import re
+    pattern = rf"Week #{week_num}</div>\s*<div class=\"d-flex flex-grow-1 me-2\" style=\"height:20px;\">(.*?)</div>\s*<div><strong"
+    match = re.search(pattern, html, re.DOTALL)
+    assert match, 'Weekly progress bar not found'
+    bar_html = match.group(1)
+    assert 'bg-warning' not in bar_html
+    assert 'bg-danger' not in bar_html
+    assert 'bg-white' not in bar_html
+    assert 'bg-secondary' in bar_html

@@ -180,25 +180,32 @@ def index():
             week_minutes[idx] = total
         week_total = sum(week_minutes)
         week_colors = []
-        if i == 0:
-            today_idx = now.weekday()
-            for j, m in enumerate(week_minutes):
-                if j >= today_idx:
-                    week_colors.append('bg-white')
-                elif m >= 60:
-                    week_colors.append('bg-success')
-                elif m > 0:
-                    week_colors.append('bg-warning')
-                else:
-                    week_colors.append('bg-secondary' if week_total >= 300 else 'bg-danger')
-        else:
+        if week_total >= 300:
             for m in week_minutes:
                 if m >= 60:
                     week_colors.append('bg-success')
-                elif m > 0:
-                    week_colors.append('bg-warning')
                 else:
-                    week_colors.append('bg-secondary' if week_total >= 300 else 'bg-danger')
+                    week_colors.append('bg-secondary')
+        else:
+            if i == 0:
+                today_idx = now.weekday()
+                for j, m in enumerate(week_minutes):
+                    if j >= today_idx:
+                        week_colors.append('bg-white')
+                    elif m >= 60:
+                        week_colors.append('bg-success')
+                    elif m > 0:
+                        week_colors.append('bg-warning')
+                    else:
+                        week_colors.append('bg-danger')
+            else:
+                for m in week_minutes:
+                    if m >= 60:
+                        week_colors.append('bg-success')
+                    elif m > 0:
+                        week_colors.append('bg-warning')
+                    else:
+                        week_colors.append('bg-danger')
         week_num = (now - datetime.timedelta(days=7 * i)).isocalendar()[1]
         weeks.append({'week_num': week_num, 'colors': week_colors, 'total': week_total})
 
