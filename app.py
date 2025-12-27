@@ -166,9 +166,10 @@ def index():
     logging.info("Fetched %d sleep rows", len(sleep_rows))
     logging.debug("Sleep rows detail: %s", sleep_rows)
     start_week = now - datetime.timedelta(days=now.weekday())
+    report_start_week = datetime.date.fromisocalendar(2025, 30, 1)
     weeks = []
-    for i in range(4):
-        week_start = start_week - datetime.timedelta(days=7 * i)
+    week_start = start_week
+    while week_start >= report_start_week:
         week_end = week_start + datetime.timedelta(days=6)
         if USING_POSTGRES:
             c.execute(
@@ -190,6 +191,7 @@ def index():
             week_minutes[idx] = total
         week_total = sum(week_minutes)
         week_colors = []
+        is_current_week = week_start == start_week
         if week_total >= 300:
             for m in week_minutes:
                 if m >= 60:
@@ -197,7 +199,7 @@ def index():
                 else:
                     week_colors.append('bg-secondary')
         else:
-            if i == 0:
+            if is_current_week:
                 today_idx = now.weekday()
                 for j, m in enumerate(week_minutes):
                     if j >= today_idx:
@@ -216,8 +218,9 @@ def index():
                         week_colors.append('bg-warning')
                     else:
                         week_colors.append('bg-danger')
-        week_num = (now - datetime.timedelta(days=7 * i)).isocalendar()[1]
+        week_num = week_start.isocalendar()[1]
         weeks.append({'week_num': week_num, 'colors': week_colors, 'total': week_total})
+        week_start -= datetime.timedelta(days=7)
 
     if USING_POSTGRES:
         c.execute(
