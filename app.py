@@ -18,6 +18,71 @@ else:
     print("Using local SQLite database", flush=True)
     
 DB_NAME = 'studysmart.db'
+SCHOOL_YEAR_START_WEEK = 30
+SCHOOL_YEAR_END_WEEK = 32
+
+
+def school_year_start(start_year):
+    """Return the Monday on which a school year starts."""
+    return datetime.date.fromisocalendar(start_year, SCHOOL_YEAR_START_WEEK, 1)
+
+
+def school_year_bounds(start_year):
+    """Return bounds covering week 30 through week 31 of the next year."""
+    return (
+        school_year_start(start_year),
+        datetime.date.fromisocalendar(start_year + 1, SCHOOL_YEAR_END_WEEK, 1),
+    )
+
+
+def as_date(value):
+    if isinstance(value, datetime.datetime):
+        return value.date()
+    if isinstance(value, datetime.date):
+        return value
+    return datetime.date.fromisoformat(value)
+
+
+def school_year_for_date(value):
+    """Return the starting calendar year for a date's school year."""
+    value = as_date(value)
+    return value.year if value >= school_year_start(value.year) else value.year - 1
+
+
+def format_school_year(start_year):
+    return f'{start_year:04d}-{start_year + 1:04d}'
+
+
+def parse_school_year(value):
+    """Parse a YYYY-YYYY+1 label, returning None for malformed input."""
+    if not value or len(value) != 9 or value[4] != '-':
+        return None
+    try:
+        start_year = int(value[:4])
+        end_year = int(value[5:])
+        school_year_start(start_year)
+        school_year_start(end_year)
+    except (TypeError, ValueError):
+        return None
+    return start_year if end_year == start_year + 1 else None
+
+
+def available_school_years(cursor, current_start_year):
+    """Return newest-first school years represented by either table."""
+    cursor.execute(
+        "SELECT study_date FROM STUDY_HOURS "
+        "UNION SELECT date FROM SLEEP_HOURS"
+    )
+    years = {current_start_year}
+    for row in cursor.fetchall():
+        if row[0] is not None:
+            value = as_date(row[0])
+            start_year = school_year_for_date(value)
+            years.add(start_year)
+            previous_start, previous_end = school_year_bounds(start_year - 1)
+            if previous_start <= value < previous_end:
+                years.add(start_year - 1)
+    return sorted(years, reverse=True)
 
 def get_conn():
     if USING_POSTGRES:
@@ -90,6 +155,16 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     now = datetime.date.today()
+    current_school_year_start = school_year_for_date(now)
+    requested_school_year = parse_school_year(request.args.get('school_year'))
+    selected_school_year_start = (
+        requested_school_year
+        if requested_school_year is not None
+        else current_school_year_start
+    )
+    selected_school_year = format_school_year(selected_school_year_start)
+    report_start, report_end = school_year_bounds(selected_school_year_start)
+
     month_str = request.args.get('month')
     if month_str:
         try:
@@ -165,11 +240,22 @@ def index():
     ]
     logging.info("Fetched %d sleep rows", len(sleep_rows))
     logging.debug("Sleep rows detail: %s", sleep_rows)
-    start_week = now - datetime.timedelta(days=now.weekday())
-    report_start_week = datetime.date.fromisocalendar(2025, 30, 1)
+
+    school_years = [
+        format_school_year(year)
+        for year in available_school_years(c, current_school_year_start)
+    ]
+
     weeks = []
-    week_start = start_week
-    while week_start >= report_start_week:
+    report_last_date = min(now, report_end - datetime.timedelta(days=1))
+    if report_last_date >= report_start:
+        week_start = report_last_date - datetime.timedelta(
+            days=report_last_date.weekday()
+        )
+    else:
+        week_start = report_start - datetime.timedelta(days=7)
+    current_week_start = now - datetime.timedelta(days=now.weekday())
+    while week_start >= report_start:
         week_end = week_start + datetime.timedelta(days=6)
         if USING_POSTGRES:
             c.execute(
@@ -191,7 +277,7 @@ def index():
             week_minutes[idx] = total
         week_total = sum(week_minutes)
         week_colors = []
-        is_current_week = week_start == start_week
+        is_current_week = week_start == current_week_start
         if week_total >= 300:
             for m in week_minutes:
                 if m >= 60:
@@ -224,11 +310,15 @@ def index():
 
     if USING_POSTGRES:
         c.execute(
-            "SELECT descr, SUM(num_minutes) FROM STUDY_HOURS GROUP BY descr"
+            "SELECT descr, SUM(num_minutes) FROM STUDY_HOURS "
+            "WHERE study_date >= %s AND study_date < %s GROUP BY descr",
+            (report_start, report_end),
         )
     else:
         c.execute(
-            "SELECT descr, SUM(num_minutes) FROM STUDY_HOURS GROUP BY descr"
+            "SELECT descr, SUM(num_minutes) FROM STUDY_HOURS "
+            "WHERE study_date >= ? AND study_date < ? GROUP BY descr",
+            (report_start.isoformat(), report_end.isoformat()),
         )
     subject_totals = [
         {"descr": (r[0] or ''), "num_minutes": r[1]} for r in c.fetchall()
@@ -249,8 +339,11 @@ def index():
         sleep_rows=sleep_rows,
         weeks=weeks,
         subject_totals=subject_totals,
+        display_month=display_month_str,
         prev_month=prev_month.strftime('%Y-%m'),
         next_month=(next_month.strftime('%Y-%m') if next_month else None),
+        school_years=school_years,
+        selected_school_year=selected_school_year,
     )
 
 

@@ -1,7 +1,25 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1 class="mb-3">StudySmart</h1>
-<i>Making the grade</i>
+<div class="d-flex justify-content-between align-items-start gap-3">
+  <div>
+    <h1 class="mb-1">StudySmart</h1>
+    <i>Making the grade</i>
+  </div>
+  <div class="dropdown">
+    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="schoolYearMenu" data-bs-toggle="dropdown" aria-expanded="false">
+      School year: {{ selected_school_year }}
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="schoolYearMenu">
+      {% for school_year in school_years %}
+      <li>
+        <a class="dropdown-item{% if school_year == selected_school_year %} active{% endif %}"
+           {% if school_year == selected_school_year %}aria-current="true"{% endif %}
+           href="{{ url_for('index', month=display_month, school_year=school_year) }}">{{ school_year }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
 
 <ul class="nav nav-tabs mt-3" id="mainTabs" role="tablist">
   <li class="nav-item" role="presentation">
@@ -40,9 +58,9 @@
     </div>
 
     <div class="d-flex justify-content-between mt-2">
-        <a href="{{ url_for('index', month=prev_month) }}" class="btn btn-outline-secondary">&laquo; Previous</a>
+        <a href="{{ url_for('index', month=prev_month, school_year=selected_school_year) }}" class="btn btn-outline-secondary">&laquo; Previous</a>
         {% if next_month %}
-        <a href="{{ url_for('index', month=next_month) }}" class="btn btn-outline-secondary">Next &raquo;</a>
+        <a href="{{ url_for('index', month=next_month, school_year=selected_school_year) }}" class="btn btn-outline-secondary">Next &raquo;</a>
         {% endif %}
     </div>
 

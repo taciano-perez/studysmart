@@ -55,6 +55,150 @@ def test_previous_month_navigation(client):
     assert f"?month={today.strftime('%Y-%m')}".encode() in resp.data
 
 
+def test_school_year_boundary_mapping():
+    boundary = app.school_year_start(2026)
+    assert app.school_year_for_date(boundary - datetime.timedelta(days=1)) == 2025
+    assert app.school_year_for_date(boundary) == 2026
+    assert app.school_year_bounds(2026) == (
+        boundary,
+        datetime.date.fromisocalendar(2027, 32, 1),
+    )
+    _, report_end = app.school_year_bounds(2026)
+    assert datetime.date.fromisocalendar(2027, 31, 7) < report_end
+
+
+def test_current_school_year_selector(client):
+    current_start_year = app.school_year_for_date(datetime.date.today())
+    current_label = app.format_school_year(current_start_year)
+
+    response = client.get('/')
+
+    assert response.status_code == 200
+    assert b'id="schoolYearMenu"' in response.data
+    assert f'School year: {current_label}'.encode() in response.data
+    assert f'>{current_label}</a>'.encode() in response.data
+
+
+def test_school_year_dropdown_discovers_study_and_sleep_data(client):
+    study_year = 2023
+    sleep_year = 2024
+    client.post(
+        '/study_hours',
+        data={
+            'studyDate': (
+                app.school_year_start(study_year) + datetime.timedelta(weeks=2)
+            ).isoformat(),
+            'studyLength': '30',
+            'studyDesc': 'Biology',
+        },
+    )
+    client.post(
+        '/sleep_hours',
+        data={
+            'sleepDate': (
+                app.school_year_start(sleep_year) + datetime.timedelta(weeks=2)
+            ).isoformat(),
+            'sleepLength': '8',
+        },
+    )
+
+    response = client.get('/')
+
+    assert app.format_school_year(study_year).encode() in response.data
+    assert app.format_school_year(sleep_year).encode() in response.data
+
+
+def test_reports_are_filtered_by_selected_school_year(client):
+    first_year = 2023
+    second_year = 2024
+    client.post(
+        '/study_hours',
+        data={
+            'studyDate': (
+                app.school_year_start(first_year) + datetime.timedelta(weeks=2)
+            ).isoformat(),
+            'studyLength': '45',
+            'studyDesc': 'Earlier subject',
+        },
+    )
+    client.post(
+        '/study_hours',
+        data={
+            'studyDate': (
+                app.school_year_start(second_year) + datetime.timedelta(weeks=2)
+            ).isoformat(),
+            'studyLength': '90',
+            'studyDesc': 'Later subject',
+        },
+    )
+
+    selected_label = app.format_school_year(first_year)
+    response = client.get(f'/?school_year={selected_label}')
+
+    assert response.status_code == 200
+    assert f'School year: {selected_label}'.encode() in response.data
+    assert b'earlier subject:' in response.data
+    assert b'0.75 hours' in response.data
+    assert b'<strong>45 / 300</strong> mins' in response.data
+    assert b'later subject:' not in response.data
+    assert b'1.5 hours' not in response.data
+    assert b'<strong>90 / 300</strong> mins' not in response.data
+
+
+def test_reports_include_week_31_of_the_ending_year(client):
+    start_year = 2023
+    ending_week_date = datetime.date.fromisocalendar(start_year + 1, 31, 3)
+    client.post(
+        '/study_hours',
+        data={
+            'studyDate': ending_week_date.isoformat(),
+            'studyLength': '75',
+            'studyDesc': 'Summer review',
+        },
+    )
+
+    response = client.get(
+        f'/?school_year={app.format_school_year(start_year)}'
+    )
+
+    assert b'summer review:' in response.data
+    assert b'1.25 hours' in response.data
+    assert b'<strong>75 / 300</strong> mins' in response.data
+    assert app.format_school_year(start_year).encode() in response.data
+    assert app.format_school_year(start_year + 1).encode() in response.data
+
+
+def test_month_navigation_preserves_selected_school_year(client):
+    displayed_month = datetime.date.today().replace(day=1)
+    displayed_month = (displayed_month - datetime.timedelta(days=1)).replace(day=1)
+    previous_month = (
+        displayed_month - datetime.timedelta(days=1)
+    ).replace(day=1)
+    selected_label = app.format_school_year(
+        app.school_year_for_date(datetime.date.today()) - 1
+    )
+
+    response = client.get(
+        f'/?month={displayed_month:%Y-%m}&school_year={selected_label}'
+    )
+
+    expected_query = (
+        f'?month={previous_month:%Y-%m}&amp;school_year={selected_label}'
+    )
+    assert expected_query.encode() in response.data
+
+
+def test_invalid_school_year_falls_back_to_current(client):
+    current_label = app.format_school_year(
+        app.school_year_for_date(datetime.date.today())
+    )
+
+    response = client.get('/?school_year=2026-2028')
+
+    assert response.status_code == 200
+    assert f'School year: {current_label}'.encode() in response.data
+
+
 def test_add_study_hours(client):
     today = datetime.date.today().isoformat()
     response = client.post(

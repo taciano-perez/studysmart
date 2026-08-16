@@ -53,16 +53,19 @@ rendered page.
   calendar markers, tooltips and deletion.
 - `tests/test_app.py` exercises the application through Flask's test client while
   replacing `app.DB_NAME` with a temporary SQLite database.
+- `SCHOOL_YEAR_REPORTS_DESIGN.md` records the school-year selector's boundary,
+  query, UI and test decisions.
 - `render.yaml` describes the Render deployment. It installs dependencies, runs
   the test suite, then serves `app:app` with Gunicorn.
 
 ### Request and data flow
 
-`GET /` is the main read path. It parses the optional `month=YYYY-MM` query
-parameter, fetches that month's study and sleep entries, calculates the all-time
-per-subject totals and weekly study status, and renders `index.html`. The template
-embeds the monthly rows as JSON; its JavaScript attaches colored markers and
-delete controls to the days in Python's generated HTML calendar.
+`GET /` is the main read path. It parses the optional `month=YYYY-MM` and
+`school_year=2026-2027` query parameters, fetches the selected month's study and
+sleep entries, calculates per-subject totals and weekly study status for the
+selected school year, and renders `index.html`. The template embeds the monthly
+rows as JSON; its JavaScript attaches colored markers and delete controls to the
+days in Python's generated HTML calendar.
 
 The write paths use HTML form field names as their input contract:
 
@@ -91,10 +94,14 @@ The tables are intentionally simple:
   studied-with-parent flag, and optional notes.
 - `SLEEP_HOURS`: date and duration in whole hours.
 
-Weekly reports start at ISO week 30 of 2025. A week meets its target at 300 study
-minutes; individual days meet their target at 60 minutes. Subject totals cover
-all stored study entries, while calendar markers are limited to the selected
-month. Future-month navigation is deliberately hidden.
+School-year report ranges start on the Monday of ISO week 30, continue through
+ISO week 31 of the following year, and use the starting year in their label (for
+example, `2026-2027`). A week meets its target at 300 study minutes; individual
+days meet their target at 60 minutes. Subject totals and weekly rows are limited
+to the selected school year, while calendar markers are limited to the
+independently selected month. The school-year dropdown always includes the
+current year plus every year represented by stored data. Future-month navigation
+is deliberately hidden.
 
 ### Changing the application safely
 
